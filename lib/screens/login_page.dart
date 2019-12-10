@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:rait_app/network/rait_api.dart';
+import 'package:rait_app/screens/attendance_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+
+    TextEditingController passwordController;
+    TextEditingController rollNoController;
+    RaitApi raitApi = new RaitApi();
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFF9e1c31),
           title: Text("Rait App"),
@@ -19,6 +29,7 @@ class LoginPage extends StatelessWidget {
             children: <Widget>[
                Image.asset("assets/rait_logo.png"),
               TextFormField(
+                controller: rollNoController,
                 decoration: InputDecoration(
                     hintText: "Roll no /Srdn",
                     border: OutlineInputBorder(
@@ -29,6 +40,7 @@ class LoginPage extends StatelessWidget {
               ),
               TextFormField(
                 obscureText: true,
+                controller: passwordController,
                 decoration: InputDecoration(
                   hintText: "Password",
                   suffixIcon: IconButton(
@@ -47,7 +59,15 @@ class LoginPage extends StatelessWidget {
               ),
               RaisedButton(
                 color: Colors.red.shade800,
-                onPressed: () {},
+                onPressed: () async {
+                  String rollNo = rollNoController.text;
+                  String password = passwordController.text;
+                  bool valid  = await raitApi.checkLogin(rollNo, password);
+                  if(valid)
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_)=> AttendanceScreen(rollNo : rollNo)
+                    ));
+                },
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0)),
                 child: Padding(
@@ -59,20 +79,17 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: GestureDetector(
-                  onTap: (){
-                    print("Create one now ");
-                  },
-                  child: Center(child: Text("Dont have an account ? Create One now ")),
 
-                ),
-              )
             ],
           ),
         ),
-      ),
+
     );
+  }
+
+  @override
+  void initState() {
+      rollNoController = new TextEditingController();
+      passwordController = new TextEditingController();
   }
 }

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:rait_app/models/subject_attendance.dart';
+import 'package:rait_app/network/rait_api.dart';
 
 const kTextStyle = TextStyle(fontSize: 20.0, color: Colors.white);
 const kBigTextStyle = TextStyle(fontSize: 25.0, color: Colors.black87);
 
 class AttendanceScreen extends StatelessWidget {
+  final RaitApi raitApi = RaitApi();
+  final String rollNo;
+  AttendanceScreen({this.rollNo});
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -16,69 +21,73 @@ class AttendanceScreen extends StatelessWidget {
             title: Text("Attendance"),
             backgroundColor: Colors.red.shade900,
           ),
-          body: ListView(
-            children: <Widget>[
-              Container(
-                height: 200.0,
-                width: double.infinity,
-                color: Colors.blue.shade600,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          body: FutureBuilder(
+              future: raitApi.getStudentAttendance(rollNo),
+              builder:
+                  (context, AsyncSnapshot<List<SubjectAttendance>> snapshot) {
+                if (!snapshot.hasData)
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                List<SubjectAttendance> subjectAttendances = snapshot.data;
+                List<AttendanceCard> attendanceCards = subjectAttendances
+                    .map((subjectAttendance) => AttendanceCard(
+                          subjectAttendance: subjectAttendance,
+                        ))
+                    .toList();
+                double percentage = 0.0;
+                for (SubjectAttendance subjectAttendance in subjectAttendances)
+                  percentage += subjectAttendance.attendedLectures /
+                      subjectAttendance.totalLectures;
+                percentage /= subjectAttendances.length;
+                String percentageString;
+                if (percentage <= 0.1) {
+                  percentageString =
+                      (percentage * 100).toString().substring(0, 3) + "%";
+                } else
+                  percentageString =
+                      (percentage * 100).toString().substring(0, 4) + "%";
+                return ListView(
                   children: <Widget>[
-                    Text("72.05%", style: kTextStyle),
-                    SizedBox(
-                      height: 20.0,
+                    Container(
+                      height: 200.0,
+                      width: double.infinity,
+                      color: Colors.blue.shade600,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(percentageString, style: kTextStyle),
+                          SizedBox(
+                            height: 20.0,
+                          ),
+                          Text(
+                            "You need to attend more class",
+                            style: kTextStyle,
+                          ),
+                        ],
+                      ),
                     ),
-                    Text(
-                      "You need to attend more class",
-                      style: kTextStyle,
-                    )
+                    ...attendanceCards
                   ],
-                ),
-              ),
-              AttendanceCard(
-                subjectName: "DBMS",
-                attendedClasses: 9,
-                totalClasses: 100,
-              ),
-              AttendanceCard(
-                subjectName: "COA",
-                attendedClasses: 32,
-                totalClasses: 54,
-              ),
-              AttendanceCard(
-                subjectName: "COA",
-                attendedClasses: 13,
-                totalClasses: 54,
-              ),
-              AttendanceCard(
-                subjectName: "COA",
-                attendedClasses: 45,
-                totalClasses: 50,
-              ),
-            ],
-          )),
+                );
+              })),
     );
   }
 }
 
 class AttendanceCard extends StatelessWidget {
-  String subjectName;
+  SubjectAttendance subjectAttendance;
 
-  int totalClasses, attendedClasses;
-
-  AttendanceCard(
-      {@required this.subjectName,
-      @required this.attendedClasses,
-      @required this.totalClasses});
+  AttendanceCard({@required this.subjectAttendance});
 
   @override
   Widget build(BuildContext context) {
-    double percentage = attendedClasses / totalClasses;
-    print(percentage);
+    double percentage =
+        subjectAttendance.attendedLectures / subjectAttendance.totalLectures;
+    // double percentage = 50/100;
     String percentageString;
     if (percentage <= 0.1) {
-      percentageString =  (percentage * 100).toString().substring(0, 3);
+      percentageString = (percentage * 100).toString().substring(0, 3);
     } else
       percentageString = (percentage * 100).toString().substring(0, 4);
 
@@ -96,7 +105,7 @@ class AttendanceCard extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  subjectName,
+                  subjectAttendance.subjectName,
                   style: kBigTextStyle,
                 ),
               ),
@@ -115,7 +124,11 @@ class AttendanceCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Text(percentageString),
-                        Text("$attendedClasses/$totalClasses")
+                        Padding(
+                          padding: const EdgeInsets.only(top :10.0),
+                          child: Text(
+                              "${subjectAttendance.attendedLectures}/${subjectAttendance.totalLectures}"),
+                        )
                       ],
                     ),
                     progressColor:
