@@ -2,7 +2,7 @@ import 'dart:convert' as json;
 
 import 'package:http/http.dart' as http;
 import 'package:rait_app/models/subject_attendance.dart';
-String baseUrl = "http://192.168.1.105:8080/";
+String baseUrl = "http://onlineservices.rait.ac.in:84/";
 class RaitApi
 {
   http.Client client ;

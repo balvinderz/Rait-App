@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rait_app/network/rait_api.dart';
+import 'package:rait_app/screens/after_login.dart';
 import 'package:rait_app/screens/attendance_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                   bool valid  = await raitApi.checkLogin(rollNo, password);
                   if(valid)
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_)=> AttendanceScreen(rollNo : rollNo)
+                      builder: (_)=> AfterLogin(rollNo : rollNo,password : password)
                     ));
                 },
                 shape: RoundedRectangleBorder(
